@@ -71,3 +71,7 @@ for make in car_manufacturer:
 for i in range(2):
     subsets[i].to_csv(f'subset_{i}.csv', index=False)  # maybe need to remove the 'path/to/' to run locally 
 
+
+
+
+
