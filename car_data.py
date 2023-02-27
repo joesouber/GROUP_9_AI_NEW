@@ -19,6 +19,7 @@ car_data.columns
 car_data.shape   #size of the data frame
 car_data.info()    #columns and the data type
 car_data.isnull().sum()   #any NaN values or empty cells
+car_data.replace('-',np.nan, inplace=True)#replaces '-' with Nan values
 car_data.select_dtypes(include=['object']).value_counts()   #checking for unique 
 
 #check for duplicates
