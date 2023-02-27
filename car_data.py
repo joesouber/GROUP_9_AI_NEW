@@ -8,7 +8,7 @@ import pandas as pd
 import seaborn as sn
 #%% PUT THE CAR_PRICE_PREDICTION FILE IN THE SAME FOLDER AS THE AI FOLDER
 
-car_data = '/kaggle/input/car-price-prediction-challenge/car_price_prediction.csv'
+car_data = 'car_price_prediction.csv'
 car_data = pd.read_csv(car_data, header = 0, skiprows=0, low_memory=False)
 car_data.head()
 car_data.columns
