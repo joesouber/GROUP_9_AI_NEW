@@ -1,5 +1,7 @@
 #%% IMPORTS
 
+#%% IMPORTS
+
 import random
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,6 +9,11 @@ import csv
 import pandas as pd
 import seaborn as sn
 from google.colab import drive
+from sklearn.impute import KNNImputer
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
 drive.mount('/content/drive')
 
 #%% PUT THE CAR_PRICE_PREDICTION FILE IN THE SAME FOLDER AS THE AI FOLDER
@@ -66,3 +73,34 @@ max(car_data_cleaned['Price'])
 
 
 car_data_cleaned
+#%%
+#making two new dataframes, one dealing with numerical values, other with words.
+
+num_attribs = ['Levy','Prod. year', 'Engine volume','Doors', 'Mileage', 'Cylinders', 'Airbags']
+cat_attribs = ['Manufacturer','Category', 'Leather interior', 'Fuel type', 'Gear box type', 'Drive wheels', 'Wheel', 'Color', 'Turbo']
+
+num_cars = car_data_cleaned[num_attribs]
+Objective = car_data_cleaned['Price']
+cat_cars = car_data_cleaned[cat_attribs]
+
+#%%
+## replacing the NAN values in the Levy column with values using Knearest neighbours
+
+
+
+imputer = KNNImputer(n_neighbors=10)
+num_cars = imputer.fit_transform(num_cars)
+scaler = StandardScaler()
+num_cars = scaler.fit_transform(num_cars)
+
+
+
+num_pipeline = Pipeline([
+    ('imputer', KNNImputer(n_neighbors=10)),
+    ('std_scaler', StandardScaler())])
+
+full_pipeline = ColumnTransformer([
+    ('num',num_pipeline, num_attribs),
+    ('cat',OneHotEncoder(), cat_attribs)  
+])
+cars_prepared = full_pipeline.fit_transform(car_data_cleaned)
