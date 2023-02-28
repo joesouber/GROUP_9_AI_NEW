@@ -1,77 +1,96 @@
 #%% IMPORTS
 
+#%% IMPORTS
+
 import random
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
 import pandas as pd
 import seaborn as sn
+from google.colab import drive
+from sklearn.impute import KNNImputer
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+drive.mount('/content/drive')
+
 #%% PUT THE CAR_PRICE_PREDICTION FILE IN THE SAME FOLDER AS THE AI FOLDER
-
-car_data = 'car_price_prediction.csv'
+car_data = '/content/drive/MyDrive/AI shared drive/car_price_prediction.csv'
 car_data = pd.read_csv(car_data, header = 0, skiprows=0, low_memory=False)
-car_data.head()
-car_data.columns
 
 
-#%% DATA EXPLORATION
+car_data.replace('-',np.nan, inplace=True) #replaces '-' with Nan values
+car_data['Levy'] = car_data['Levy'].astype('float64')
 
-car_data.shape   #size of the data frame
-car_data.info()    #columns and the data type
-car_data.isnull().sum()   #any NaN values or empty cells
-car_data.replace('-',np.nan, inplace=True)#replaces '-' with Nan values
-car_data.select_dtypes(include=['object']).value_counts()   #checking for unique 
+car_data['Mileage'] = car_data['Mileage'].str.extract('(\d+)').astype(int) # This is going to remove the 'km' in the mileage
+car_data['Mileage'] = car_data['Mileage'].astype('int64')
 
-#check for duplicates
-num_duplicates = car_data[car_data.duplicated()]
-car_data1 = car_data.drop_duplicates() #this dataset does not include the duplicates
-car_data1.shape
-car_data1.info()
-car_data1.isnull().sum()
+car_data['Leather interior'] = car_data['Leather interior'].replace({'Yes': True, 'No': False})#replace 'Leather interior yes/no with T/F
 
-#separate object columns 
-object_columns = car_data1.select_dtypes(include=['object'])
-#separate numerical columns
-numeric_columns = car_data1.select_dtypes(include=['int', 'float']).drop(['Price'], axis = 1)
-#create a target column - we are training to predict price
-target = car_data1.Price
+car_data['Turbo'] = car_data['Engine volume'].str.contains('Turbo') #place turbo in separate new column with T/F.
 
-#what does the Price column look like
+car_data['Engine volume'] = car_data['Engine volume'].str.extract(r'(\d+\.\d+|\d+)').astype(float) # remove turbo from engine type, 
+car_data['Engine volume'] = car_data['Engine volume'].astype('float64')
+car_data['Doors'].replace({'04-May':4, '02-Mar':2, '>5':5}, inplace=True) #replace doors dates with 2,4,5
 
-plt.figure(figsize=(8,9))
-sn.distplot(np.log10(car_data1['Price']),color='r')
-plt.title('price')
-plt.show()
+car_data
 
-#we expect a log-normal distribution based
+#%%
+def detect_outliers(df, features, threshold=1.5):
+    """
+    Detects outliers in a DataFrame based on the interquartile range (IQR) method.
 
+    Parameters:
+        df (pandas.DataFrame): The DataFrame to search for outliers in.
+        features (list): A list of column names to search for outliers in.
+        threshold (float): The number of IQRs from the median to consider a value an outlier. Default is 1.5.
 
-#%% CREATE SUBSETS FOR TRAINING/TESTING
-# Identify the unique car manufacturers in the dataset
-car_manufacturer = car_data1['Manufacturer'].unique()
+    Returns:
+        A list of the row indices where outliers were found.
+    """
+    outlier_indices = []
 
-# Create an empty dictionary to hold the subsets
-subsets = {i: pd.DataFrame() for i in range(2)}
+    for feature in features:
+        values = df[feature].values
+        q1, q3 = np.percentile(values, [25, 75])
+        iqr = q3 - q1
+        outlier_step = iqr * threshold
+        lower_bound = q1 - outlier_step
+        upper_bound = q3 + outlier_step
+        outliers = np.where((values < lower_bound) | (values > upper_bound))[0]
+        outlier_indices.extend(outliers)
 
-# For each make, randomly select a proportionate number of rows to include in each subset
-for make in car_manufacturer:
-    make_df = car_data1[car_data1['Manufacturer'] == make]
-    make_size = len(make_df)
-    indices = np.arange(make_size)
-    np.random.shuffle(indices)
-    for i in range(2):
-        subset_size = make_size // 2
-        start = i * subset_size
-        end = (i + 1) * subset_size
-        subset_indices = indices[start:end]
-        subset = make_df.iloc[subset_indices]
-        subsets[i] = pd.concat([subsets[i], subset])
+    return outlier_indices
 
-# Save each subset to a separate file
-for i in range(2):
-    subsets[i].to_csv(f'subset_{i}.csv', index=False)  # maybe need to remove the 'path/to/' to run locally 
+features = ['Price', 'Levy', 'Mileage']
+outliers = detect_outliers(car_data,features, 1.5)
+car_data_cleaned = car_data.drop(car_data.loc[outliers].index,axis=0)
+
+plt.boxplot(car_data_cleaned['Price'], notch=None, vert=None, patch_artist=None, widths=None)
+max(car_data_cleaned['Price'])
 
 
+car_data_cleaned
+#%%
+#making two new dataframes, one dealing with numerical values, other with words.
 
+num_attribs = ['Levy','Prod. year', 'Engine volume','Doors', 'Mileage', 'Cylinders', 'Airbags']
+cat_attribs = ['Manufacturer','Category', 'Leather interior', 'Fuel type', 'Gear box type', 'Drive wheels', 'Wheel', 'Color', 'Turbo']
+
+num_cars = car_data_cleaned[num_attribs]
+Objective = car_data_cleaned['Price']
+cat_cars = car_data_cleaned[cat_attribs]
+
+#%%
+## replacing the NAN values in the Levy column with values using Knearest neighbours
+
+
+
+imputer = KNNImputer(n_neighbors=10)
+num_cars = imputer.fit_transform(num_cars)
+scaler = StandardScaler()
+num_cars = scaler.fit_transform(num_cars)
 
 
