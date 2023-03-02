@@ -6,7 +6,7 @@ import numpy as np
 import csv
 import pandas as pd
 #import seaborn as sn
-#from google.colab import drive
+from google.colab import drive
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OneHotEncoder
@@ -19,12 +19,9 @@ from sklearn.metrics import mean_squared_error as mse
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score
-<<<<<<< HEAD
-#drive.mount('/content/drive')
 
-=======
 drive.mount('/content/drive')
->>>>>>> e1c568c740c92cc5c97b8b2e37df0630a1a0c644
+
 
 #%% PUT THE CAR_PRICE_PREDICTION FILE IN THE SAME FOLDER AS THE AI FOLDER
 car_data = '/content/drive/MyDrive/AI shared drive/car_price_prediction.csv'
@@ -96,13 +93,14 @@ car_data_cleaned
 bosh = car_data_cleaned['Levy'].isnull() #finding where the nans are true = Nan, false = no Nan
 nan_indices = car_data_cleaned[bosh].index    #turning into index
 
-<<<<<<< HEAD
-
 #%%
-## replacing the NAN values in the Levy column with values using Knearest neighbours
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-=======
+#attempting to replace Nan values in levy colum using 
+
+#car_data_cleaned.head()
+
+bosh = car_data_cleaned['Levy'].isnull() #finding where the nans are true = Nan, false = no Nan
+nan_indices = car_data_cleaned[bosh].index    #turning into index
+
 df_with_nans = car_data_cleaned.loc[nan_indices]   #splitting dataset up into nan and no nan
 df_without_nans = car_data_cleaned.loc[~bosh]
 NUMBERS =['Price','Levy','Prod. year', 'Engine volume','Doors', 'Mileage', 'Cylinders', 'Airbags']
@@ -125,7 +123,16 @@ r2 = r2_score(y_test, y_pred)
 
 print('We have predicted the levy price with an accuracy of',r2,'on the test set') 
 
->>>>>>> e1c568c740c92cc5c97b8b2e37df0630a1a0c644
+
+#Now we get a r2 score of 78.3% with a test size of 33%. Use this predictor on the Nan dataset.
+df_with_nans_NUMBERS = df_with_nans_NUMBERS.drop('Levy', axis=1)
+
+Nan_pred = reg.predict(df_with_nans_NUMBERS)
+df_with_nans['Levy'] = Nan_pred
+
+Cleaned_and_final_data = pd.concat([df_with_nans, df_without_nans])
+
+
 
 #Now we get a r2 score of 78.3% with a test size of 33%. Use this predictor on the Nan dataset.
 df_with_nans_NUMBERS = df_with_nans_NUMBERS.drop('Levy', axis=1)
@@ -182,7 +189,7 @@ start_time = time.time()
 # Define the number of input features
 input_dim = X_train.shape[1]
 
-<<<<<<< HEAD
+
 # Define the neural network architecture
 model = Sequential()
 model.add(Dense(512, input_dim=input_dim, activation='relu'))
@@ -207,55 +214,16 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 print("Elapsed time: ", elapsed_time, " seconds")
 
+# Plotting Losses 
+plt.figure()
+plt.plot(Model.history["loss"])
+plt.plot(Model.history["val_loss"])
 
-
-num_pipeline = Pipeline([
-    ('imputer', KNNImputer(n_neighbors=10)),
-    ('std_scaler', StandardScaler())])
-
-full_pipeline = ColumnTransformer([
-    ('num',num_pipeline, num_attribs),
-    ('cat',OneHotEncoder(), cat_attribs)  
-])
-cars_prepared = full_pipeline.fit_transform(car_data_cleaned)
+plt.title('Model Loss During Training or Validation')
+plt.ylabel('Training & Validation Losses')
+plt.xlabel('Epoch')
+plt.legend(['Training Loss', 'Validation Loss'])
 
 
 
-#attempting to replace Nan values in levy colum using 
-
-#car_data_cleaned.head()
-
-bosh = car_data_cleaned['Levy'].isnull() #finding where the nans are true = Nan, false = no Nan
-nan_indices = car_data_cleaned[bosh].index    #turning into index
-
-df_with_nans = car_data_cleaned.loc[nan_indices]   #splitting dataset up into nan and no nan
-df_without_nans = car_data_cleaned.loc[~bosh]
-NUMBERS =['Price','Levy','Prod. year', 'Engine volume','Doors', 'Mileage', 'Cylinders', 'Airbags']
-df_without_nans_NUMBERS = df_without_nans[NUMBERS]
-df_with_nans_NUMBERS = df_with_nans[NUMBERS]
-
-X_train, X_test, y_train, y_test = train_test_split(df_without_nans_NUMBERS.drop('Levy', axis=1), df_without_nans_NUMBERS['Levy'], test_size=0.33, random_state=42)
-
-# create a decision tree regressor object
-reg = DecisionTreeRegressor(random_state=42)
-
-# fit the regressor to the training data
-reg.fit(X_train, y_train)
-
-# predict on the test data
-y_pred = reg.predict(X_test)
-
-# evaluate the performance of the model on the test data
-r2 = r2_score(y_test, y_pred)
-
-print('We have predicted the levy price with an accuracy of',r2,'on the test set') 
-
-
-#Now we get a r2 score of 78.3% with a test size of 33%. Use this predictor on the Nan dataset.
-df_with_nans_NUMBERS = df_with_nans_NUMBERS.drop('Levy', axis=1)
-
-Nan_pred = reg.predict(df_with_nans_NUMBERS)
-df_with_nans['Levy'] = Nan_pred
-
-Cleaned_and_final_data = pd.concat([df_with_nans, df_without_nans])
-
+# %%
