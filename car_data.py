@@ -166,6 +166,7 @@ start_time = time.time()
 # Define the number of input features
 input_dim = X_train.shape[1]
 
+<<<<<<< HEAD
 # Define the neural network architecture
 model = Sequential()
 model.add(Dense(512, input_dim=input_dim, activation='relu'))
@@ -190,3 +191,5 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 print("Elapsed time: ", elapsed_time, " seconds")
 
+=======
+>>>>>>> 4f07fba607c371ed6d9823d23ac3399d2e1fd8ab
