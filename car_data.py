@@ -6,8 +6,8 @@ import numpy as np
 import csv
 import pandas as pd
 #import seaborn as sn
-from google.colab import drive
 from sklearn.impute import KNNImputer
+#from google.colab import drive
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
@@ -20,12 +20,12 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score
 
-drive.mount('/content/drive')
+#drive.mount('/content/drive')
 
 
 #%% PUT THE CAR_PRICE_PREDICTION FILE IN THE SAME FOLDER AS THE AI FOLDER
-car_data = '/content/drive/MyDrive/AI shared drive/car_price_prediction.csv'
-car_data = pd.read_csv(car_data, header = 0, skiprows=0, low_memory=False)
+#car_data = '/content/drive/MyDrive/AI shared drive/car_price_prediction.csv'
+car_data = pd.read_csv('car_price_prediction.csv', header = 0, skiprows=0, low_memory=False)
 
 
 car_data.replace('-',np.nan, inplace=True) #replaces '-' with Nan values
@@ -48,6 +48,8 @@ car_data = car_data.drop('ID', axis=1)
 
 
 car_data
+
+#%%
 ## Removes outliars 
 
 def detect_outliers(df, features, threshold=1.5):
@@ -85,13 +87,7 @@ max(car_data_cleaned['Price'])
 
 
 car_data_cleaned
-#%%
-#attempting to replace Nan values in levy colum using 
 
-#car_data_cleaned.head()
-
-bosh = car_data_cleaned['Levy'].isnull() #finding where the nans are true = Nan, false = no Nan
-nan_indices = car_data_cleaned[bosh].index    #turning into index
 
 #%%
 #attempting to replace Nan values in levy colum using 
@@ -122,16 +118,6 @@ y_pred = reg.predict(X_test)
 r2 = r2_score(y_test, y_pred)
 
 print('We have predicted the levy price with an accuracy of',r2,'on the test set') 
-
-
-#Now we get a r2 score of 78.3% with a test size of 33%. Use this predictor on the Nan dataset.
-df_with_nans_NUMBERS = df_with_nans_NUMBERS.drop('Levy', axis=1)
-
-Nan_pred = reg.predict(df_with_nans_NUMBERS)
-df_with_nans['Levy'] = Nan_pred
-
-Cleaned_and_final_data = pd.concat([df_with_nans, df_without_nans])
-
 
 
 #Now we get a r2 score of 78.3% with a test size of 33%. Use this predictor on the Nan dataset.
