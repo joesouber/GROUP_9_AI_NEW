@@ -191,5 +191,4 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 print("Elapsed time: ", elapsed_time, " seconds")
 
-=======
->>>>>>> 4f07fba607c371ed6d9823d23ac3399d2e1fd8ab
+
