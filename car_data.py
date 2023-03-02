@@ -143,6 +143,15 @@ linear_model.fit(X_train, y_train)
 score = linear_model.score(X_test, y_test)
 print('Linear regression model produces an accuracy of',score)
 
+
+# Ridge Regression Model
+# Need to find the right value of the hyperparameter alpha - doesn't really matter though as they all produce the same accuracy ~ 46%
+alpha = 1
+ridge_regressor = Ridge(alpha)
+ridge_regressor.fit(X_train, y_train)
+score = ridge_regressor.score(X_test, y_test)
+print('Ridge regression model produces an accuracy of',score)
+
 #Random forrest lukes method
 random_model = RandomForestRegressor()
 random_model.fit(X_train, y_train)
