@@ -9,8 +9,10 @@ import pandas as pd
 from sklearn.impute import KNNImputer
 #from google.colab import drive
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
+from sklearn.linear_model import Lasso
 from sklearn.linear_model import Ridge
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
@@ -20,6 +22,7 @@ from sklearn.metrics import mean_squared_error as mse
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score
+import scipy.optimize
 
 #drive.mount('/content/drive')
 
@@ -143,12 +146,34 @@ linear_model = LinearRegression()
 linear_model.fit(X_train, y_train)
 linear_regression_score = linear_model.score(X_test, y_test)
 print('Linear regression model produces an accuracy of',linear_regression_score)
+#%%
+# finding the optimal value of alpha by plotting the r2 score against alpha
+alpha = []
+r2 = []
+
+step = 0.1
+values = [i for i in range(int(0/step), int(10/step))]
+
+for value in values:
+    print(value * step)
+    alpha.append(value*step)
+    ridge_model = Ridge(alpha=value*step)
+    ridge_model.fit(X_train, y_train)
+    r2.append(ridge_model.score(X_test, y_test))
+
+optimal_alpha = alpha[r2.index(max(r2))]
+print('The optimal value of alpha is', optimal_alpha)
+plt.plot(alpha, r2)
+plt.xlabel('Alpha')
+plt.ylabel('R2 score')
+plt.title('R2 score against alpha')
+plt.show()
 
 #%%
 # Ridge Regression Model
 # Need to find the right value of the hyperparameter alpha - doesn't really matter though as they all produce the same accuracy ~ 46%
 alpha = 1
-ridge_regressor = Ridge(alpha)
+ridge_regressor = Ridge(optimal_alpha)
 ridge_regressor.fit(X_train, y_train)
 ridge_regressor_score = ridge_regressor.score(X_test, y_test)
 print('Ridge regression model produces an accuracy of',ridge_regressor_score)
@@ -173,6 +198,61 @@ Dtree_model.fit(X_train, y_train)
 y_pred = Dtree_model.predict(X_test)
 decision_tree_score = r2_score(y_test, y_pred)
 print('Decision tree model produces an accuracy of',decision_tree_score)
+
+
+#%%
+# finding the optimal value of alpha by plotting the r2 score against alpha
+alpha = []
+r2 = []
+
+step = 0.1
+values = [i for i in range(int(0.0001/step), int(10/step))]
+
+for value in values:
+    print(value * step)
+    alpha.append(value*step)
+    lasso_model = Lasso(alpha=value*step)
+    lasso_model.fit(X_train, y_train)
+    r2.append(lasso_model.score(X_test, y_test))
+
+optimal_alpha = alpha[r2.index(max(r2))]
+# plotting the r2 score against alpha
+plt.plot(alpha, r2)
+plt.xlabel('Alpha')
+plt.ylabel('R2 score')
+plt.title('R2 score against alpha')
+plt.show()
+
+
+#%%
+# Building a lasso model 
+lasso_model = Lasso(optimal_alpha)
+lasso_model.fit(X_train, y_train)
+# producing r2 score
+lasso_score = lasso_model.score(X_test, y_test)
+print('Lasso model produces an accuracy of',lasso_score)
+
+#%%
+# finding the optimal value of alpha by plotting the r2 score against alpha
+alpha = []
+r2 = []
+
+for i in range(0,10, 0.1):
+    alpha.append(i/100)
+    lasso_model = Lasso(alpha=i/100)
+    lasso_model.fit(X_train, y_train)
+    r2.append(lasso_model.score(X_test, y_test))
+
+
+
+
+#%%
+# Building a gradient boosting model
+gradient_boosting_model = GradientBoostingRegressor()
+gradient_boosting_model.fit(X_train, y_train)
+# producing r2 score
+gradient_boosting_score = gradient_boosting_model.score(X_test, y_test)
+print('Gradient boosting model produces an accuracy of',gradient_boosting_score)
 
 #%%Trying to build DNN
 
@@ -225,8 +305,8 @@ plt.legend(['Training Loss', 'Validation Loss'])
 # %%
 # Plotting Accuracy
 
-scores = [linear_regression_score, ridge_regressor_score, random_forrest_luke_score, random_forrest_joe_score, decision_tree_score]
-names = ['Linear Regression', 'Ridge Regression', 'Random Forrest Luke', 'Random Forrest Joe', 'Decision Tree']
+scores = [linear_regression_score, ridge_regressor_score, random_forrest_luke_score, random_forrest_joe_score, decision_tree_score, lasso_score, gradient_boosting_score]
+names = ['Linear Regression', 'Ridge Regression', 'Random Forrest Luke', 'Random Forrest Joe', 'Decision Tree', 'Lasso', 'Gradient Boosting']
 plt.figure()
 plt.bar(names, scores)
 plt.title('Accuracy of different models')
