@@ -11,6 +11,7 @@ from sklearn.impute import KNNImputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
+from sklearn.linear_model import Ridge
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from sklearn import datasets
@@ -140,38 +141,38 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random
 #Linear regression model 
 linear_model = LinearRegression()
 linear_model.fit(X_train, y_train)
-score = linear_model.score(X_test, y_test)
-print('Linear regression model produces an accuracy of',score)
+linear_regression_score = linear_model.score(X_test, y_test)
+print('Linear regression model produces an accuracy of',linear_regression_score)
 
-
+#%%
 # Ridge Regression Model
 # Need to find the right value of the hyperparameter alpha - doesn't really matter though as they all produce the same accuracy ~ 46%
 alpha = 1
 ridge_regressor = Ridge(alpha)
 ridge_regressor.fit(X_train, y_train)
-score = ridge_regressor.score(X_test, y_test)
-print('Ridge regression model produces an accuracy of',score)
-
+ridge_regressor_score = ridge_regressor.score(X_test, y_test)
+print('Ridge regression model produces an accuracy of',ridge_regressor_score)
+#%%
 #Random forrest lukes method
 random_model = RandomForestRegressor()
 random_model.fit(X_train, y_train)
 y_pred = random_model.predict(X_test)
-score = r2_score(y_test,y_pred)
-print('Random forrest regression model produces an accuracy of', score)
-
+random_forrest_luke_score = r2_score(y_test,y_pred)
+print('Random forrest regression model produces an accuracy of', random_forrest_luke_score)
+#%%
 #Random forrest joes method 
 
 random_model = RandomForestRegressor()
 random_model.fit(X_train, y_train)
-score = random_model.score(X_test, y_test)
-print('Random forrest regression model produces an accuracy of', score)
-
+random_forrest_joe_score = random_model.score(X_test, y_test)
+print('Random forrest regression model produces an accuracy of', random_forrest_joe_score)
+#%%
 #Decision tree 
 Dtree_model = DecisionTreeRegressor(random_state=42)
 Dtree_model.fit(X_train, y_train)
 y_pred = Dtree_model.predict(X_test)
-score = r2_score(y_test, y_pred)
-print('Decision tree model produces an accuracy of',score)
+decision_tree_score = r2_score(y_test, y_pred)
+print('Decision tree model produces an accuracy of',decision_tree_score)
 
 #%%Trying to build DNN
 
@@ -219,6 +220,20 @@ plt.ylabel('Training & Validation Losses')
 plt.xlabel('Epoch')
 plt.legend(['Training Loss', 'Validation Loss'])
 
+
+
+# %%
+# Plotting Accuracy
+
+scores = [linear_regression_score, ridge_regressor_score, random_forrest_luke_score, random_forrest_joe_score, decision_tree_score]
+names = ['Linear Regression', 'Ridge Regression', 'Random Forrest Luke', 'Random Forrest Joe', 'Decision Tree']
+plt.figure()
+plt.bar(names, scores)
+plt.title('Accuracy of different models')
+plt.ylabel('Accuracy')
+plt.xticks(rotation=90)
+plt.xlabel('Model')
+plt.show()
 
 
 # %%
