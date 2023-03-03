@@ -6,7 +6,10 @@ import numpy as np
 import csv
 import pandas as pd
 import seaborn as sn
-from google.colab import drive
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.linear_model import Lasso
+import scipy.optimize
+#from google.colab import drive
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OneHotEncoder
@@ -27,7 +30,7 @@ from sklearn.metrics import r2_score
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 import time
-drive.mount('/content/drive')
+#drive.mount('/content/drive')
 
 #%%
 # PUT THE CAR_PRICE_PREDICTION FILE IN THE SAME FOLDER AS THE AI FOLDER
@@ -177,15 +180,33 @@ linear_model.fit(X_train, y_train)
 linear_regression_score = linear_model.score(X_test, y_test)
 print('Linear regression model produces an accuracy of', linear_regression_score)
 
+#%%
 # Ridge Regression Model
 # Need to find the right value of the hyperparameter alpha
-alpha = 1
-ridge_regressor = Ridge(alpha)
+# finding the optimal value of alpha by plotting the r2 score against alpha
+alpha = []
+r2 = []
+
+step = 0.1
+values = [i for i in range(int(0/step), int(10/step))]
+
+for value in values:
+    print(value * step)
+    alpha.append(value*step)
+    ridge_model = Ridge(alpha=value*step)
+    ridge_model.fit(X_train, y_train)
+    r2.append(ridge_model.score(X_test, y_test))
+
+optimal_alpha = alpha[r2.index(max(r2))]
+print('The optimal value of alpha is', optimal_alpha)
+
+ridge_regressor = Ridge(optimal_alpha)
 ridge_regressor.fit(X_train, y_train)
 
 ridge_regressor_score = ridge_regressor.score(X_test, y_test)
 print('Ridge regression model produces an accuracy of', ridge_regressor_score)
 
+#%%
 #Random forest 
 random_model = RandomForestRegressor()
 random_model.fit(X_train, y_train)
@@ -193,14 +214,58 @@ y_pred = random_model.predict(X_test)
 random_forest_score = r2_score(y_test,y_pred)
 print('Random forrest regression model produces an accuracy of', random_forest_score)
 
-
+#%%
 #Decision tree 
 Dtree_model = DecisionTreeRegressor(random_state=42)
 Dtree_model.fit(X_train, y_train)
 y_pred = Dtree_model.predict(X_test)
-score = r2_score(y_test, y_pred)
+decision_tree_score = r2_score(y_test, y_pred)
 print('Decision tree model produces an accuracy of',score)
 
+#%%
+# Building a lasso model 
+alpha = []
+r2 = []
+
+step = 0.1
+values = [i for i in range(int(0.0001/step), int(10/step))]
+
+for value in values:
+    print(value * step)
+    alpha.append(value*step)
+    lasso_model = Lasso(alpha=value*step)
+    lasso_model.fit(X_train, y_train)
+    r2.append(lasso_model.score(X_test, y_test))
+
+optimal_alpha = alpha[r2.index(max(r2))]
+print('The optimal value of alpha is', optimal_alpha)
+
+# Building a lasso model 
+lasso_model = Lasso(optimal_alpha)
+lasso_model.fit(X_train, y_train)
+# producing r2 score
+lasso_score = lasso_model.score(X_test, y_test)
+print('Lasso model produces an accuracy of',lasso_score)
+
+#%%
+# Building a gradient boosting model
+gradient_boosting_model = GradientBoostingRegressor()
+gradient_boosting_model.fit(X_train, y_train)
+# producing r2 score
+gradient_boosting_score = gradient_boosting_model.score(X_test, y_test)
+print('Gradient boosting model produces an accuracy of',gradient_boosting_score)
+
+
+#%% 
+# Plotting the r2 scores
+scores = [linear_regression_score, ridge_regressor_score, random_forrest_score, , decision_tree_score, lasso_score, gradient_boosting_score]
+names = ['Linear Regression', 'Ridge Regression', 'Random Forrest Luke', 'Random Forrest Joe', 'Decision Tree', 'Lasso', 'Gradient Boosting']
+plt.figure()
+plt.bar(names, scores)
+plt.title('Accuracy of different models')
+plt.xlabel('Model')
+plt.ylabel('Accuracy')
+plt.show()
 #%% DEEP LEARNING
 start_time = time.time()
 
