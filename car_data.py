@@ -220,7 +220,7 @@ Dtree_model = DecisionTreeRegressor(random_state=42)
 Dtree_model.fit(X_train, y_train)
 y_pred = Dtree_model.predict(X_test)
 decision_tree_score = r2_score(y_test, y_pred)
-print('Decision tree model produces an accuracy of',score)
+print('Decision tree model produces an accuracy of',decision_tree_score)
 
 #%%
 # Building a lasso model 
@@ -258,7 +258,7 @@ print('Gradient boosting model produces an accuracy of',gradient_boosting_score)
 
 #%% 
 # Plotting the r2 scores
-scores = [linear_regression_score, ridge_regressor_score, random_forrest_score, , decision_tree_score, lasso_score, gradient_boosting_score]
+scores = [linear_regression_score, ridge_regressor_score, random_forest_score, decision_tree_score, lasso_score, gradient_boosting_score]
 names = ['Linear Regression', 'Ridge Regression', 'Random Forrest Luke', 'Random Forrest Joe', 'Decision Tree', 'Lasso', 'Gradient Boosting']
 plt.figure()
 plt.bar(names, scores)
