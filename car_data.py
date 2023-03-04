@@ -359,3 +359,5 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 print("Elapsed time: ", elapsed_time, " seconds")
 
+
+# THIS IS TO CHECK IF I CAN PUSH TO GITHUB
