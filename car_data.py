@@ -238,12 +238,14 @@ Dtree_model = DecisionTreeRegressor(random_state=42)
 Dtree_model.fit(X_train, y_train)
 y_pred = Dtree_model.predict(X_test)
 decision_tree_score = r2_score(y_test, y_pred)
+
 print('Decision tree model produces an accuracy of', decision_tree_score)
 #cross validation
 scores = cross_val_score(Dtree_model, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
 tree_rmse_scores = np.sqrt(-scores)
 print(tree_rmse_scores)
 print("Decision tree regression model mean cross validation :", tree_rmse_scores.mean())
+
 
 #%%
 # Building a lasso model 
@@ -305,8 +307,8 @@ print("Extreme gradient boosting model mean cross validation :", extreme_rmse_sc
 
 #%% 
 # Plotting the r2 scores
-scores = [linear_regression_score, ridge_regressor_score, random_forest_score, decision_tree_score, lasso_score, gradient_boosting_score, extreme_gradient_boosting_score]
-names = ['Linear Regression', 'Ridge Regression', 'Random Forest', 'Decision Tree', 'Lasso', 'Gradient Boosting', 'Extreme Gradient Boosting']
+scores = [linear_regression_score, ridge_regressor_score, random_forest_score, decision_tree_score, lasso_score, gradient_boosting_score]
+names = ['Linear Regression', 'Ridge Regression', 'Random Forest', 'Decision Tree', 'Lasso', 'Gradient Boosting']
 plt.figure()
 plt.bar(names, scores)
 plt.title('Accuracy of different models')
@@ -357,3 +359,5 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 print("Elapsed time: ", elapsed_time, " seconds")
 
+
+# THIS IS TO CHECK IF I CAN PUSH TO GITHUB
