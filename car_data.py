@@ -60,7 +60,7 @@ car_data = car_data.drop('ID', axis=1) #drops a column with not relevant informa
 
 car_data
 
-## Removes outliars 
+## Removes outliers 
 
 def detect_outliers(df, features, threshold=1.5):
     """
@@ -212,7 +212,7 @@ random_model = RandomForestRegressor()
 random_model.fit(X_train, y_train)
 y_pred = random_model.predict(X_test)
 random_forest_score = r2_score(y_test,y_pred)
-print('Random forrest regression model produces an accuracy of', random_forest_score)
+print('Random forest regression model produces an accuracy of', random_forest_score)
 
 #%%
 #Decision tree 
@@ -220,7 +220,7 @@ Dtree_model = DecisionTreeRegressor(random_state=42)
 Dtree_model.fit(X_train, y_train)
 y_pred = Dtree_model.predict(X_test)
 decision_tree_score = r2_score(y_test, y_pred)
-print('Decision tree model produces an accuracy of',score)
+print('Decision tree model produces an accuracy of', decision_tree_score)
 
 #%%
 # Building a lasso model 
@@ -245,7 +245,7 @@ lasso_model = Lasso(optimal_alpha)
 lasso_model.fit(X_train, y_train)
 # producing r2 score
 lasso_score = lasso_model.score(X_test, y_test)
-print('Lasso model produces an accuracy of',lasso_score)
+print('Lasso model produces an accuracy of', lasso_score)
 
 #%%
 # Building a gradient boosting model
@@ -253,13 +253,13 @@ gradient_boosting_model = GradientBoostingRegressor()
 gradient_boosting_model.fit(X_train, y_train)
 # producing r2 score
 gradient_boosting_score = gradient_boosting_model.score(X_test, y_test)
-print('Gradient boosting model produces an accuracy of',gradient_boosting_score)
+print('Gradient boosting model produces an accuracy of', gradient_boosting_score)
 
 
 #%% 
 # Plotting the r2 scores
-scores = [linear_regression_score, ridge_regressor_score, random_forrest_score, , decision_tree_score, lasso_score, gradient_boosting_score]
-names = ['Linear Regression', 'Ridge Regression', 'Random Forrest Luke', 'Random Forrest Joe', 'Decision Tree', 'Lasso', 'Gradient Boosting']
+scores = [linear_regression_score, ridge_regressor_score, random_forest_score, decision_tree_score, lasso_score, gradient_boosting_score]
+names = ['Linear Regression', 'Ridge Regression', 'Random Forest', 'Decision Tree', 'Lasso', 'Gradient Boosting']
 plt.figure()
 plt.bar(names, scores)
 plt.title('Accuracy of different models')
