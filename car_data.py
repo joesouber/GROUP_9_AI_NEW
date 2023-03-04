@@ -21,11 +21,13 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
+from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import cross_val_score
 from sklearn.metrics import r2_score
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
@@ -179,6 +181,11 @@ linear_model = LinearRegression()
 linear_model.fit(X_train, y_train)
 linear_regression_score = linear_model.score(X_test, y_test)
 print('Linear regression model produces an accuracy of', linear_regression_score)
+#cross validation
+scores = cross_val_score(linear_model, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
+linear_rmse_scores = np.sqrt(-scores)
+print(linear_rmse_scores)
+print("Linear regression model mean cross validation: ", linear_rmse_scores.mean())
 
 #%%
 # Ridge Regression Model
@@ -205,6 +212,12 @@ ridge_regressor.fit(X_train, y_train)
 
 ridge_regressor_score = ridge_regressor.score(X_test, y_test)
 print('Ridge regression model produces an accuracy of', ridge_regressor_score)
+#cross validation
+scores = cross_val_score(ridge_regressor, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
+ridge_rmse_scores = np.sqrt(-scores)
+print(ridge_rmse_scores)
+print("Ridge regression model mean cross validation: ", ridge_rmse_scores.mean())
+
 
 #%%
 #Random forest 
@@ -213,6 +226,11 @@ random_model.fit(X_train, y_train)
 y_pred = random_model.predict(X_test)
 random_forest_score = r2_score(y_test,y_pred)
 print('Random forest regression model produces an accuracy of', random_forest_score)
+#cross validation
+scores = cross_val_score(random_model, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
+random_rmse_scores = np.sqrt(-scores)
+print(random_rmse_scores)
+print("Random forest regression model mean cross validation: ", random_rmse_scores.mean())
 
 #%%
 #Decision tree 
@@ -221,6 +239,11 @@ Dtree_model.fit(X_train, y_train)
 y_pred = Dtree_model.predict(X_test)
 decision_tree_score = r2_score(y_test, y_pred)
 print('Decision tree model produces an accuracy of', decision_tree_score)
+#cross validation
+scores = cross_val_score(Dtree_model, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
+tree_rmse_scores = np.sqrt(-scores)
+print(tree_rmse_scores)
+print("Decision tree regression model mean cross validation :", tree_rmse_scores.mean())
 
 #%%
 # Building a lasso model 
@@ -246,6 +269,11 @@ lasso_model.fit(X_train, y_train)
 # producing r2 score
 lasso_score = lasso_model.score(X_test, y_test)
 print('Lasso model produces an accuracy of', lasso_score)
+#cross validation
+scores = cross_val_score(lasso_model, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
+lasso_rmse_scores = np.sqrt(-scores)
+print(lasso_rmse_scores)
+print("Lasso regression model mean cross validation :", lasso_rmse_scores.mean())
 
 #%%
 # Building a gradient boosting model
@@ -254,9 +282,13 @@ gradient_boosting_model.fit(X_train, y_train)
 # producing r2 score
 gradient_boosting_score = gradient_boosting_model.score(X_test, y_test)
 print('Gradient boosting model produces an accuracy of', gradient_boosting_score)
+#cross validation
+scores = cross_val_score(gradient_boosting_model, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
+gradboost_rmse_scores = np.sqrt(-scores)
+print(gradboost_rmse_scores)
+print("Gradient boosting model mean cross validation :", gradboost_rmse_scores.mean())
 
 #%% XGBR
-from xgboost import XGBRegressor
 #extreme gradient boosting
 extreme_gradient_boost =XGBRegressor()
 extreme_gradient_boost.fit(X_train, y_train)
@@ -265,6 +297,11 @@ extreme_gradient_boosting_score = extreme_gradient_boost.score(X_test, y_test)
 #xgbr_r2score = r2_score(y_test, y_pred)
 print('Extreme gradient boosting model produces an accuracy of', extreme_gradient_boosting_score)
 #print('Extreme gradient boosting model produces an r2 score of', xgbr_r2score)
+#cross validation
+scores = cross_val_score(extreme_gradient_boost, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
+extreme_rmse_scores = np.sqrt(-scores)
+print(extreme_rmse_scores)
+print("Extreme gradient boosting model mean cross validation :", extreme_rmse_scores.mean())
 
 #%% 
 # Plotting the r2 scores
@@ -273,10 +310,19 @@ names = ['Linear Regression', 'Ridge Regression', 'Random Forest', 'Decision Tre
 plt.figure()
 plt.bar(names, scores)
 plt.title('Accuracy of different models')
+plt.xticks(names, rotation = "vertical")
 plt.xlabel('Model')
 plt.ylabel('Accuracy')
 plt.show()
 
+#plotting cross validation scores
+cross_val_scores = [linear_rmse_scores.mean(), ridge_rmse_scores.mean(), random_rmse_scores.mean(), tree_rmse_scores.mean(), lasso_rmse_scores.mean(), gradboost_rmse_scores.mean(), extreme_rmse_scores.mean()]
+plt.figure()
+plt.bar(names, cross_val_scores)
+plt.title('Cross validation of different models')
+plt.xticks(names, rotation = "vertical")
+plt.ylim(0, 10000)
+plt.show()
 
 #%% DEEP LEARNING
 start_time = time.time()
