@@ -257,19 +257,29 @@ gradient_boosting_model.fit(X_train, y_train)
 gradient_boosting_score = gradient_boosting_model.score(X_test, y_test)
 print('Gradient boosting model produces an accuracy of', gradient_boosting_score)
 
+#%% XGBR
+from xgboost import XGBRegressor
+#extreme gradient boosting
+extreme_gradient_boost =XGBRegressor()
+extreme_gradient_boost.fit(X_train, y_train)
+y_pred=extreme_gradient_boost.predict(X_test)
+extreme_gradient_boosting_score = extreme_gradient_boost.score(X_test, y_test)
+#xgbr_r2score = r2_score(y_test, y_pred)
+print('Extreme gradient boosting model produces an accuracy of', extreme_gradient_boosting_score)
+#print('Extreme gradient boosting model produces an r2 score of', xgbr_r2score)
 
 #%% 
 # Plotting the r2 scores
 scores = [linear_regression_score, ridge_regressor_score, random_forest_score, decision_tree_score, lasso_score, gradient_boosting_score]
-
 names = ['Linear Regression', 'Ridge Regression', 'Random Forest', 'Decision Tree', 'Lasso', 'Gradient Boosting']
-
 plt.figure()
 plt.bar(names, scores)
 plt.title('Accuracy of different models')
 plt.xlabel('Model')
 plt.ylabel('Accuracy')
 plt.show()
+
+
 #%% DEEP LEARNING
 start_time = time.time()
 
