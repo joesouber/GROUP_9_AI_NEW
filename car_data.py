@@ -219,6 +219,42 @@ print(ridge_rmse_scores)
 print("Ridge regression model mean cross validation: ", ridge_rmse_scores.mean())
 
 
+#%% Logistic Regression Model
+logistic_model = LogisticRegression(random_state=1, max_iter=1000)
+logistic_model.fit(X_train, y_train)
+logistic_regression_score = logistic_model.score(X_test, y_test)
+print('Logistic regression model produces an accuracy of', logistic_regression_score)
+
+#%%
+# Building a elastic net regression model
+alpha = []
+r2 = []
+
+step = 0.1
+values = [i for i in range(int(0.0001/step), int(10/step))]
+for value in values:
+    alpha.append(value*step)
+    elastic_model = ElasticNet(alpha=value*step)
+    elastic_model.fit(X_train, y_train)
+    r2.append(elastic_model.score(X_test, y_test))
+
+
+
+optimal_alpha = alpha[r2.index(max(r2))]
+print('The optimal value of alpha is', optimal_alpha)
+
+# Building a elastic net regression model
+elastic_model = ElasticNet(optimal_alpha)
+elastic_model.fit(X_train, y_train)
+# producing r2 score
+elastic_score = elastic_model.score(X_test, y_test)
+print('Elastic net model produces an accuracy of', elastic_score)
+#cross validation
+scores = cross_val_score(elastic_model, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
+elastic_rmse_scores = np.sqrt(-scores)
+print(elastic_rmse_scores)
+print("Elastic net regression model mean cross validation :", elastic_rmse_scores.mean())
+
 #%%
 #Random forest 
 random_model = RandomForestRegressor()
@@ -231,6 +267,42 @@ scores = cross_val_score(random_model, X_train, y_train, scoring='neg_mean_squar
 random_rmse_scores = np.sqrt(-scores)
 print(random_rmse_scores)
 print("Random forest regression model mean cross validation: ", random_rmse_scores.mean())
+
+#%%
+
+# optimizing the degree of polynomial regression
+# This doesn't work for some reason in VS code, but it works in Jupyter notebook
+degree = []
+r2 = []
+
+for value in range(1, 10):
+    degree.append(value)
+    poly = PolynomialFeatures(degree=value)
+    X_train_poly = poly.fit_transform(X_train)
+    poly.fit(X_train_poly, y_train)
+    lin2 = LinearRegression()
+    lin2.fit(X_train_poly, y_train)
+    r2.append(lin2.score(poly.fit_transform(X_test), y_test))
+
+optimal_degree = degree[r2.index(max(r2))]
+print('The optimal degree of polynomial regression is', optimal_degree)
+
+#%%
+# Building a polynomial regression model
+poly = PolynomialFeatures(degree=2)
+X_train_poly = poly.fit_transform(X_train)
+
+poly.fit(X_train_poly, y_train)
+lin2 = LinearRegression()
+lin2.fit(X_train_poly, y_train)
+# producing r2 score
+poly_score = lin2.score(poly.fit_transform(X_test), y_test)
+print('Polynomial regression model produces an accuracy of', poly_score)
+#cross validation
+scores = cross_val_score(lin2, X_train_poly, y_train, scoring='neg_mean_squared_error', cv=5)
+poly_rmse_scores = np.sqrt(-scores)
+print(poly_rmse_scores)
+print("Polynomial regression model mean cross validation :", poly_rmse_scores.mean())
 
 #%%
 #Decision tree 
