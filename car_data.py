@@ -199,6 +199,9 @@ def LinearRegressionModel(X_train, y_train, X_test, y_test):
     rmse_scores = np.sqrt(-scores)
     print("Linear regression model mean cross validation: ", rmse_scores.mean())
 
+    #return r2 and rmse_scores and y_pred
+    return r2, rmse_scores, y_pred
+
 
 # linear_model = LinearRegression()
 # linear_model.fit(X_train, y_train)
@@ -264,6 +267,10 @@ def RidgeRegressionModel(X_train, y_train, X_test, y_test):
     scores = cross_val_score(ridge, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
     rmse_scores = np.sqrt(-scores)
     print("Ridge regression model mean cross validation: ", rmse_scores.mean())
+
+
+    #return r2 and rmse_scores and y_pred
+    return r2, rmse_scores, y_pred
 
 # ridge_regressor = Ridge(optimal_alpha)
 # ridge_regressor.fit(X_train, y_train)
@@ -332,7 +339,10 @@ def ElasticNetRegressionModel(X_train, y_train, X_test, y_test):
     rmse_scores = np.sqrt(-scores)
     print("Elastic net regression model mean cross validation: ", rmse_scores.mean())
 
-optimal_alpha = alpha[r2.index(max(r2))]
+    #return r2 and rmse_scores and y_pred
+    return r2, rmse_scores, y_pred
+
+# optimal_alpha = alpha[r2.index(max(r2))]
 # print('The optimal value of alpha is', optimal_alpha)
 
 # # Building a elastic net regression model
@@ -381,6 +391,8 @@ def RandomForestRegressionModel(X_train, y_train, X_test, y_test):
         scores = cross_val_score(random, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
         rmse_scores = np.sqrt(-scores)
         print("Random forest regression model mean cross validation: ", rmse_scores.mean())
+        #return r2 and rmse_scores and y_pred
+        return r2, rmse_scores, y_pred
 
 #%%
 
@@ -444,6 +456,8 @@ def PolynomialRegressionModel(X_train, y_train, X_test, y_test):
     poly.fit(X_train_poly, y_train)
     lin2 = LinearRegression()
     lin2.fit(X_train_poly, y_train)
+    # create a prediction
+    y_pred = lin2.predict(poly.fit_transform(X_test))
     # producing r2 score
     poly_score = lin2.score(poly.fit_transform(X_test), y_test)
     print('Polynomial regression model produces an accuracy of', poly_score)
@@ -452,6 +466,8 @@ def PolynomialRegressionModel(X_train, y_train, X_test, y_test):
     poly_rmse_scores = np.sqrt(-scores)
     print(poly_rmse_scores)
     print("Polynomial regression model mean cross validation :", poly_rmse_scores.mean())
+
+    return poly_score, poly_rmse_scores, y_pred
 
 
 #%%
@@ -488,6 +504,8 @@ def DecisionTreeRegressionModel(X_train, y_train, X_test, y_test):
             scores = cross_val_score(Dtree_model, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
             rmse_scores = np.sqrt(-scores)
             print("Decision tree regression model mean cross validation: ", rmse_scores.mean())
+
+            return r2, rmse_scores, y_pred
 
 
 #%%
@@ -551,6 +569,8 @@ def LassoRegressionModel(X_train, y_train, X_test, y_test):
     lasso_rmse_scores = np.sqrt(-scores)
     print(lasso_rmse_scores)
     print("Lasso regression model mean cross validation :", lasso_rmse_scores.mean())
+
+    return lasso_score, lasso_rmse_scores, y_pred
 #%%
 # # Building a gradient boosting model
 # gradient_boosting_model = GradientBoostingRegressor()
@@ -578,6 +598,8 @@ def GradientBoostingRegressionModel(X_train, y_train, X_test, y_test):
     gradboost_rmse_scores = np.sqrt(-scores)
     print(gradboost_rmse_scores)
     print("Gradient boosting model mean cross validation :", gradboost_rmse_scores.mean())
+
+    return gradient_boosting_score, gradboost_rmse_scores, y_pred
 #%% XGBR
 #extreme gradient boosting
 # extreme_gradient_boost =XGBRegressor()
@@ -614,6 +636,8 @@ def r2_plotting(names, scores):
     plt.xlabel('Model')
     plt.ylabel('Accuracy')
     plt.show()
+
+
 
 
 #plotting cross validation scores
@@ -701,3 +725,4 @@ def DNN(X_train, y_train, X_test, y_test):
     elapsed_time = end_time - start_time
     print("Elapsed time: ", elapsed_time, " seconds")
 
+    return model
