@@ -31,6 +31,9 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import r2_score
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
+from keras.wrappers.scikit_learn import KerasRegressor
+#import conv2d, flatten, maxpooling2d from keras.layers
+from keras.layers import Conv2D, Flatten, MaxPooling2D
 import time
 #drive.mount('/content/drive')
 
@@ -59,9 +62,53 @@ car_data['Doors'].replace({'04-May':4, '02-Mar':2, '>5':5}, inplace=True) #repla
 
 car_data = car_data.drop('ID', axis=1) #drops a column with not relevant information
 
+car_data = car_data.drop(16983)
 
 car_data
+#%%
 
+
+#make a new variable that is the price in increasing order
+car_sorted = car_data.sort_values('Price')
+
+percent = np.linspace(0,100, len(car_sorted['Price']))
+plt.plot(car_sorted['Price'], percent)
+plt.show()
+
+# do the same above but with only the first third of the data
+car_sorted = car_sorted.iloc[:int(len(car_sorted['Price'])/6)]
+
+plt.plot(car_sorted['Price'], percent[0:int(len(car_sorted['Price']))])
+plt.show()
+
+# do the exact same with mileage
+car_sorted = car_data.sort_values('Mileage')
+
+percent = np.linspace(0,100, len(car_sorted['Mileage']))
+plt.plot(car_sorted['Mileage'], percent)
+plt.show()
+
+# do the same above but with only the first third of the data
+car_sorted = car_sorted.iloc[:int(len(car_sorted['Mileage'])/6)]
+
+plt.plot(car_sorted['Mileage'], percent[0:int(len(car_sorted['Mileage']))])
+plt.show()
+
+# do the exact same with levy
+car_sorted = car_data.sort_values('Levy')
+
+percent = np.linspace(0,100, len(car_sorted['Levy']))
+plt.plot(car_sorted['Levy'], percent)
+plt.show()
+
+# do the same above but with only the first third of the data
+car_sorted = car_sorted.iloc[:int(len(car_sorted['Levy'])/6)]
+
+plt.plot(car_sorted['Levy'], percent[0:int(len(car_sorted['Levy']))])
+plt.show()
+
+
+# %%
 ## Removes outliers
 
 def detect_outliers(df, features, threshold=1.5):
