@@ -319,6 +319,27 @@ def RidgeRegressionModel(X_train, y_train, X_test, y_test):
     #return r2 and rmse_scores and y_pred
     return r2, rmse_scores, y_pred
 
+## residual score shows points with the highest loss
+## testing the function on the linear model, seems to work
+
+def ResidualScores(X_test, y_test, y_pred):
+  residuals = y_test - y_pred
+  squared_residuals = residuals**2
+  n = 10
+  top_indices = np.argsort(squared_residuals)[::-1][:n]
+  print(top_indices) # these are the top 10 data points with the highest error.
+  top_data_points = X_test[top_indices]
+  print(top_data_points)  # then what do i do with this
+  plt.scatter(y_pred[top_indices], residuals[top_indices])
+  plt.xlabel('Predicted Values')
+  plt.ylabel('Residuals')
+  plt.title('Residual Plot')
+  plt.show()
+  return residuals, squared_residuals, top_indices, top_data_points
+
+# just to test
+ResidualScores(X_test, y_test, LinearRegressionModel(X_train, y_train, X_test, y_test)[2])
+
 # ridge_regressor = Ridge(optimal_alpha)
 # ridge_regressor.fit(X_train, y_train)
 
