@@ -1,0 +1,227 @@
+#%% IMPORTS
+import random
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+import pandas as pd
+import seaborn as sn
+from google.colab import drive
+from sklearn.impute import KNNImputer
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.svm import SVR
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.model_selection import train_test_split
+from sklearn import datasets
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.metrics import mean_squared_error as mse
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import r2_score
+from sklearn.metrics import classification_report
+from xgboost import XGBRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from xgboost import XGBRegressor
+from sklearn.model_selection import RandomizedSearchCV
+from scipy.stats import randint as sp_randint
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+drive.mount('/content/drive')
+
+car_data = '/content/drive/MyDrive/AI shared drive/car_price_prediction.csv'
+df = pd.read_csv(car_data, header = 0, skiprows=0, low_memory=False)
+#%% Processing Functions 
+
+def FormatData(df):
+    df.replace('-',np.nan, inplace=True) #replaces '-' with Nan values
+    df['Levy'] = df['Levy'].astype('float64')
+    df['Mileage'] = df['Mileage'].str.extract('(\d+)').astype('int64') # This is going to remove the 'km' in the mileage
+    #car_data['Mileage'] = car_data['Mileage'].astype('int64')
+    df['Leather interior'] = df['Leather interior'].replace({'Yes': True, 'No': False})#replace 'Leather interior yes/no with T/F
+    df['Wheel'] = df['Wheel'].replace({'Right-hand drive': True, 'Left wheel': False})#replace 'Wheel' Right-hand drive/left wheel with T/F
+    df['Turbo'] = df['Engine volume'].str.contains('Turbo') #place turbo in separate new column with T/F.
+    df['Engine volume'] = df['Engine volume'].str.extract(r'(\d+\.\d+|\d+)').astype(float) # remove turbo from engine type, 
+    df['Engine volume'] = df['Engine volume'].astype('float64')
+    df['Doors'].replace({'04-May':4, '02-Mar':2, '>5':5}, inplace=True) #replace doors dates with 2,4,5
+    df = df.drop('ID', axis=1) #drops a column with not relevant information
+    return(df)
+
+def Removeoutliars(df):
+  high = 250000
+  low = 100
+  df = df[df['Price'] <= high]
+  df = df[df['Price'] >= low]
+  return df
+
+def OneHotEncode(df):
+  df = pd.get_dummies(df, columns = ['Manufacturer','Model','Category','Fuel type','Gear box type','Drive wheels','Color','Leather interior','Wheel','Turbo']) #one hot encoding the data
+  return df
+
+
+#-#-#-#-#- |LEVY STUFF| -#-#-#-#-#
+def LevyMedian(X_train,X_val):
+  X_train = pd.DataFrame(X_train)
+  X_val = pd.DataFrame(X_val)
+  medianval = X_train[0].median()
+  X_train[0] = X_train[0].fillna(X_train[0].median())
+  X_val[0] = X_val[0].fillna(medianval)
+  return X_train,X_val
+
+def DtrOnLevy(X_train_F,X_val_F):
+    nan_df = X_train_F[X_train['Levy'].isnull()]   # get rows with NaN values in 'Levy' column
+    non_nan_df = X_train_F.dropna(subset=['Levy'])   # get rows without NaN values in 'Levy' column
+    X_train, X_test, y_train, y_test = train_test_split(non_nan_df.drop('Levy', axis=1), non_nan_df['Levy'], test_size=0.33, random_state=42)
+    reg = DecisionTreeRegressor(random_state=42)
+    reg.fit(X_train, y_train)
+    nan_pred = reg.predict(nan_df.drop('Levy', axis=1))
+    nan_df['Levy'] = nan_pred
+    return pd.concat([non_nan_df, nan_df])
+
+
+def DtrOnLevyBoth(train_df, test_df):
+    train_df = pd.DataFrame(train_df)
+    test_df = pd.DataFrame(test_df)
+    nan_train_df = train_df[train_df[0].isnull()]  # get rows with NaN values in 'Levy' column from train dataframe
+    non_nan_train_df = train_df.dropna(subset=[0])  # get rows without NaN values in 'Levy' column from train dataframe
+    X_train, X_test, y_train, y_test = train_test_split(non_nan_train_df.drop(0, axis=1), non_nan_train_df[0], test_size=0.33, random_state=42)
+    reg = DecisionTreeRegressor(random_state=42)
+    reg.fit(X_train, y_train)
+    nan_pred = reg.predict(nan_train_df.drop(0, axis=1))
+    nan_train_df[0] = nan_pred
+    nan_test_df = test_df[test_df[0].isnull()]  # get rows with NaN values in 'Levy' column from test dataframe
+    nan_test_pred = reg.predict(nan_test_df.drop(0, axis=1))
+    nan_test_df[0] = nan_test_pred
+    train_df = pd.concat([non_nan_train_df, nan_train_df])
+    test_df.update(nan_test_df)
+    return train_df, test_df
+
+### THIS NEEDS TO BE FIXED TO MAINTAIN ORIGINAL INDEXING 
+def DtrOnLevyBothMaintain(train_df, test_df):
+    train_df = pd.DataFrame(train_df)
+    test_df = pd.DataFrame(test_df)
+    nan_train_df = train_df[train_df[0].isnull()].copy()  # get rows with NaN values in 'Levy' column from train dataframe
+    non_nan_train_df = train_df.dropna(subset=[0]).copy()  # get rows without NaN values in 'Levy' column from train dataframe
+    X_train, X_test, y_train, y_test = train_test_split(non_nan_train_df.drop(0, axis=1), non_nan_train_df[0], test_size=0.33, random_state=42)
+    reg = DecisionTreeRegressor(random_state=42)
+    reg.fit(X_train, y_train)
+    nan_pred = reg.predict(nan_train_df.drop(0, axis=1))
+    nan_train_df[0] = nan_pred
+    nan_train_df.index = train_df[train_df[0].isnull()].index  # set the index to the original NaN rows
+    nan_test_df = test_df[test_df[0].isnull()].copy()  # get rows with NaN values in 'Levy' column from test dataframe
+    nan_test_pred = reg.predict(nan_test_df.drop(0, axis=1))
+    nan_test_df[0] = nan_test_pred
+    nan_test_df.index = test_df[test_df[0].isnull()].index  # set the index to the original NaN rows
+    train_df = pd.concat([non_nan_train_df, nan_train_df])
+    test_df.update(nan_test_df)
+    return train_df, test_df
+
+
+
+def TrainTestVal(df):
+  X = df.drop('Price',axis=1)
+  y = df['Price']
+  X = np.array(X)
+  y = np.array(y)
+  X_train, X_testval, y_train, y_testval = train_test_split(X, y, test_size=0.5, random_state = 42)
+  XB = np.array(X_testval)
+  yB = np.array(y_testval)
+  X_val, X_test, y_val, y_test = train_test_split(XB, yB, test_size=0.5, random_state = 42)
+  return X_train, y_train, X_test, y_test, X_val, y_val
+
+
+
+def MinMax(X_train,X_val):
+  X_train = pd.DataFrame(X_train)
+  X_val = pd.DataFrame(X_val)
+  sc = MinMaxScaler()
+  sc.fit(X_train)
+  sc.transform(X_train)
+  sc.transform(X_val)
+  return X_train,X_val
+
+#%%
+#-#-#-#- |Functions for machine learning| -#-#-#-#
+
+def RandomForestRegressionModel(X_train, y_train, X_val, y_val):
+
+        # create a random forest regression model object
+        #random = RandomForestRegressor(max_depth = 9, max_features = None, min_samples_leaf = 10, min_samples_split = 15, n_estimators = 60 )
+        random = RandomForestRegressor()
+        # fit the model to the training data
+        random.fit(X_train, y_train)
+        # predict on the test data
+        y_pred = random.predict(X_val)
+        # evaluate the performance of the model on the test data
+        r2 = r2_score(y_val, y_pred)
+        print('We have predicted the price with an accuracy of',r2,'on the val set')
+        #return r2 and rmse_scores and y_pred
+        return r2
+#%% Pipeline 1 
+X_train, y_train, X_test, y_test, X_val, y_val = TrainTestVal(Removeoutliars(OneHotEncode(FormatData(df))))
+X_train,X_val = LevyMedian(X_train,X_val)
+X_train,X_val = MinMax(X_train,X_val)
+RandomForestRegressionModel(X_train, y_train, X_val, y_val)
+#%%Finding optimal hyperparams
+
+X_train, y_train, X_test, y_test, X_val, y_val = TrainTestVal(Removeoutliars(OneHotEncode(FormatData(df))))
+X_train,X_val = LevyMedian(X_train,X_val)
+X_train,X_val = MinMax(X_train,X_val)
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from xgboost import XGBRegressor
+from sklearn.model_selection import RandomizedSearchCV
+from scipy.stats import randint as sp_randint
+import numpy as np
+
+def find_optimal_hyperparameters(X, y):
+    # Create parameter distributions for each model
+    rf_param_dist = {
+        'n_estimators': sp_randint(10, 100),
+        'max_depth': sp_randint(2, 10),
+        'max_features': ['sqrt', 'log2', None],
+        'min_samples_split': sp_randint(2, 20),
+        'min_samples_leaf': sp_randint(1, 20)
+    }
+
+    lr_param_dist = {
+        'copy_X': [True,False], 
+        'fit_intercept':[True,False], 
+        'n_jobs': sp_randint(1, 20), 
+        'positive':[True,False]
+        
+    }
+
+    xgb_param_dist = {
+        'max_depth': sp_randint(2, 10),
+        'learning_rate': np.logspace(-3, 0, 100),
+        'n_estimators': sp_randint(10, 100),
+        'gamma': np.logspace(-3, 0, 100),
+        'subsample': np.linspace(0.1, 1, 100),
+        'colsample_bytree': np.linspace(0.1, 1, 100)
+    }
+
+    # Create the models
+    rf = RandomForestRegressor()
+    lr = LinearRegression()
+    xgb = XGBRegressor()
+
+    # Create a dictionary of models and their corresponding parameter distributions
+    models = {
+        'Random Forest': (rf, rf_param_dist),
+        'Linear Regression': (lr, lr_param_dist),
+        'XGBoost': (xgb, xgb_param_dist)
+    }
+
+    # Iterate over each model and perform random search to find the optimal hyperparameters
+    for name, (model, param_dist) in models.items():
+        search = RandomizedSearchCV(model, param_distributions=param_dist, n_iter=20, cv=5)
+        search.fit(X, y)
+        print(f"{name}: Best params = {search.best_params_}, Best score = {search.best_score_}")
+
+#find_optimal_hyperparameters(X_train, y_train)
