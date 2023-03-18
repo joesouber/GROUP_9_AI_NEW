@@ -29,9 +29,21 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_absolute_percentage_error
 
 from Pipeline_attempts import FormatData, Removeoutliars, OneHotEncode, LevyMedian, TrainTestVal, MinMax
-from Pipeline_attempts import setup_x_y, RandomForestRegressionModel2, RemoveHighResidualsRandom, RandomForestRegressionModel3, RemoveHighResidualsRandom2
+from Pipeline_attempts import RandomForestRegressionModel2, RemoveHighResidualsRandom, RandomForestRegressionModel3, RemoveHighResidualsRandom2
 from Pipeline_attempts import XGBR_model, RemoveHighResidualsXGBR, XGBR_model2, RemoveHighResidualsXGBR2
 
+#%% SETUP THE X AND Y VARIABLES
+
+def setup_x_y():
+    df = pd.read_csv(car_data, header = 0, skiprows=0, low_memory=False)
+    a = FormatData(df)
+    b = OneHotEncode(a)
+    c = Removeoutliars(b)
+    X_train, y_train, X_test, y_test, X_val, y_val = TrainTestVal(c)
+    X_train,X_val = LevyMedian(X_train,X_val)
+    X_train,X_val = MinMax(X_train,X_val)
+    return X_train, y_train, X_test, y_test, X_val, y_val
+  
 #%% REMOVE ERRORS FROM RANDOM FOREST REGRESSOR
 t = RandomForestRegressionModel2()
 
