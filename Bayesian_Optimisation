@@ -218,3 +218,81 @@ def find_best_hyperparameters():
 
     print('Ridge Regression - Best hyperparameters:', ridge__bayes_search.best_params_)
     print('XGB - Best hyperparameters:', xgb__bayes_search.best_params_)
+
+
+#%%
+
+#X_train, y_train, X_test, y_test, X_val, y_val = TrainTestVal(Removeoutliars(OneHotEncode(FormatData(df))))
+#X_train,X_val = LevyMedian(X_train,X_val)
+#X_train,X_val = MinMax(X_train,X_val)
+
+
+# Define the search space for hyperparameters
+space = [Integer(1,100,name='max_depth'),
+         Real(0.01,1,prior='log-uniform',name='learing_rate'),
+         Real(0, 1, prior='uniform',name='gamma'),
+         Real(0.1, 1, prior='uniform',name='subsample'),
+         Real(0.1, 1, prior='uniform',name='colsample_bytree')]
+
+
+# Define the function to optimize
+def XGB_regression(params):
+    # Unpack the hyperparameters
+    max_depth,learning_rate,gamma,subsample,colsample_bytree = params
+
+    # Create the random forest regression model
+    xgb = XGBRegressor(max_depth=max_depth,learning_rate=learning_rate,gamma=gamma,subsample=subsample,colsample_bytree=colsample_bytree)
+    xgb.fit(X_train,y_train)
+    y_pred= xgb.predict(X_val)
+    mape = mean_absolute_percentage_error(y_val, y_pred)
+
+    return mape
+
+# Run the Bayesian optimization algorithm
+result = gp_minimize(XGB_regression, space, n_calls=50,random_state=0)
+
+print("Optimal hyperparameters: max_depth={}, learning_rate={}, gamma={}, subsample={}, colsample_bytree={}".format(*result.x))
+mape = XGB_regression(result.x)
+print("Mean Absolute Percentage Error: {:.2f}%".format(mape))
+
+#%%
+
+car_data = '/content/drive/MyDrive/AI shared drive/car_price_prediction.csv'
+df = pd.read_csv(car_data, header = 0, skiprows=0, low_memory=False)
+X_train, y_train, X_test, y_test, X_val, y_val = TrainTestVal(Removeoutliars(OneHotEncode(FormatData(df))))
+X_train,X_val = LevyMedian(X_train,X_val)
+X_train,X_val = MinMax(X_train,X_val)
+
+
+# Define the search space for hyperparameters
+space = [Integer(20, 150, name='n_estimators'),
+         Integer(1, 1000, name='max_depth'),
+         Integer(2, 10, name='min_samples_split'),
+         Integer(2, 10, name='min_samples_leaf'),
+         Integer(1,5,name='max_features')]
+
+   
+# Define the function to optimize
+def rf_regression_mse(params):
+    # Unpack the hyperparameters
+    n_estimators, max_depth, min_samples_split, min_samples_leaf,max_features = params
+
+    # Create the random forest regression model
+    rf = RandomForestRegressor(n_estimators=n_estimators,
+                                max_depth=max_depth,
+                                min_samples_split=min_samples_split,
+                                min_samples_leaf=min_samples_leaf,max_features=max_features)
+
+    # Train the model and compute the mean squared error on the validation set
+    rf.fit(X_train, y_train)
+    y_pred = rf.predict(X_val)
+    mape = mean_absolute_percentage_error(y_val, y_pred)
+
+    return mape
+
+# Run the Bayesian optimization algorithm
+result = gp_minimize(rf_regression_mse, space, n_calls=50,random_state=0)
+
+# Print the optimal hyperparameters and the corresponding mean squared error
+print("Optimal hyperparameters: n_estimators={}, max_depth={}, min_samples_split={}, min_samples_leaf={}".format(*result.x))
+print("Minimum mean percentage error: {:.4f}".format(result.fun))
