@@ -1,3 +1,3 @@
 README
 
-New github because old one crashed.
+Linear Regression, Machine Learning Project
